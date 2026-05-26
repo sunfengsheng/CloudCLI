@@ -1,0 +1,87 @@
+name: Build CloudCLI
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: claudecodeui/package-lock.json
+
+      # ── 1. Install all deps (need devDeps for Vite build) ──────────────
+      - name: Install claudecodeui dependencies
+        working-directory: claudecodeui
+        run: npm ci
+
+      # ── 2. Build frontend (dist/) and server (dist-server/) ────────────
+      - name: Build claudecodeui
+        working-directory: claudecodeui
+        env:
+          VITE_IS_PLATFORM: 'true'
+          VITE_CONTEXT_WINDOW: '160000'
+          CONTEXT_WINDOW: '160000'
+        run: npm run build
+
+      # ── 3. Prune to production-only node_modules ───────────────────────
+      - name: Prune devDependencies
+        working-directory: claudecodeui
+        run: npm prune --production
+
+      # ── 4. Stub @openai/codex-sdk to save ~200 MB ──────────────────────
+      - name: Stub codex-sdk native binary
+        shell: bash
+        run: |
+          STUB="claudecodeui/node_modules/@openai/codex-sdk/dist/index.js"
+          if [ -f "$STUB" ]; then
+            printf 'export class Codex {\n  constructor() { throw new Error("Codex SDK not available"); }\n}\n' > "$STUB"
+            find "claudecodeui/node_modules/@openai/codex-sdk" -name "*.node" -delete 2>/dev/null || true
+          fi
+
+      # ── 5. Assemble electron-shell/app/ ────────────────────────────────
+      - name: Assemble app directory
+        shell: bash
+        run: |
+          mkdir -p electron-shell/app
+          cp -r claudecodeui/dist          electron-shell/app/dist
+          cp -r claudecodeui/dist-server   electron-shell/app/dist-server
+          cp -r claudecodeui/node_modules  electron-shell/app/node_modules
+          # Mark dist-server as ESM so Node.js handles .js as ES modules
+          echo '{"type":"module"}' > electron-shell/app/dist-server/package.json
+
+      # ── 6. Build the exe ───────────────────────────────────────────────
+      - name: Install electron-shell dependencies
+        working-directory: electron-shell
+        run: npm install
+
+      - name: Build CloudCLI.exe
+        working-directory: electron-shell
+        run: npm run dist
+
+      # ── 7. Upload artifact (available for every build) ────────────────
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CloudCLI-windows
+          path: electron-shell/release/CloudCLI.exe
+          retention-days: 30
+
+      # ── 8. Create GitHub Release (only for version tags) ──────────────
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: electron-shell/release/CloudCLI.exe
+          generate_release_notes: true
