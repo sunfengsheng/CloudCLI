@@ -15,9 +15,9 @@ CloudCLI 是基于 ClaudeCodeUI v1.31.5 封装的桌面客户端，使用 Electr
 
 ## 快速开始
 
-双击 `ClaudeCodeUI.exe`，等待约 5 秒后窗口自动出现，无需注册登录，直接使用。
+双击 `CloudCLI.exe`，等待约 5 秒后窗口自动出现，无需注册登录，直接使用。
 
-> exe 路径：`electron-shell/release/ClaudeCodeUI.exe`（142MB）
+> exe 路径：`electron-shell/release/CloudCLI.exe`（142MB）
 
 ## 功能说明
 
@@ -74,5 +74,5 @@ cp -r ../claudecodeui/dist-server app/dist-server
 cp -r ../claudecodeui/node_modules app/node_modules
 
 npm install
-npm run dist           # 生成 release/ClaudeCodeUI.exe
+npm run dist           # 生成 release/CloudCLI.exe
 ```

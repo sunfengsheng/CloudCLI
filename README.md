@@ -18,7 +18,7 @@
 
 ## 直接使用（推荐）
 
-下载 `release/ClaudeCodeUI.exe`，双击运行即可。
+下载 `release/CloudCLI.exe`，双击运行即可。
 
 > 首次启动稍慢（约 5 秒），等待窗口自动弹出。
 
@@ -43,7 +43,7 @@ cp -r node_modules ../electron-shell/app/node_modules   # 或重新 npm install
 cd ../electron-shell
 npm install
 npm run dist
-# 产物在 release/ClaudeCodeUI.exe
+# 产物在 release/CloudCLI.exe
 ```
 
 ## 项目结构

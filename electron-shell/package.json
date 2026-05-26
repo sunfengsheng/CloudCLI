@@ -1,15 +1,15 @@
 {
-  "name": "claude-code-ui",
+  "name": "cloudcli",
   "version": "1.0.0",
-  "description": "Claude Code UI Desktop",
+  "description": "CloudCLI Desktop",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
   },
   "build": {
-    "appId": "com.claudecodeui.desktop",
-    "productName": "ClaudeCodeUI",
+    "appId": "com.cloudcli.desktop",
+    "productName": "CloudCLI",
     "directories": {
       "output": "release"
     },
@@ -24,7 +24,7 @@
       "target": "portable"
     },
     "portable": {
-      "artifactName": "ClaudeCodeUI.exe"
+      "artifactName": "CloudCLI.exe"
     }
   },
   "devDependencies": {

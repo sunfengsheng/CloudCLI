@@ -44,7 +44,7 @@ function startServer() {
   if (!nodePath) {
     dialog.showErrorBox(
       'Node.js Not Found',
-      'Claude Code UI requires Node.js 18+ to be installed.\n\nPlease install Node.js from https://nodejs.org/ and restart the app.'
+      'CloudCLI requires Node.js 18+ to be installed.\n\nPlease install Node.js from https://nodejs.org/ and restart the app.'
     );
     app.quit();
     return;
@@ -92,7 +92,7 @@ function createWindow() {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    title: 'Claude Code UI',
+    title: 'CloudCLI',
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
@@ -119,7 +119,7 @@ app.on('ready', async () => {
     console.error('Server failed to start:', e.message);
     dialog.showErrorBox(
       'Server Failed to Start',
-      'The Claude Code UI server failed to start within 30 seconds.\n\nPlease check that Node.js is installed and try again.'
+      'The CloudCLI server failed to start within 30 seconds.\n\nPlease check that Node.js is installed and try again.'
     );
     app.quit();
   }
