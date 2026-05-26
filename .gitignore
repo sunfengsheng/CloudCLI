@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-server/
+
+# Environment files
+.env
+*.log
+
+# Electron runtime app (large built files)
+electron-shell/app/
+electron-shell/release/
+
+# Test screenshots & playwright
+*.png
+.playwright-mcp/
+
+# Claude dev files
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
