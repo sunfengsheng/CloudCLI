@@ -35,10 +35,7 @@ jobs:
           CONTEXT_WINDOW: '160000'
         run: npm run build
 
-      # ── 3. Prune to production-only node_modules ───────────────────────
-      - name: Prune devDependencies
-        working-directory: claudecodeui
-        run: npm prune --production
+      # ── 3. Prune devDependencies (skip — prune breaks transitive deps) ──
 
       # ── 4. Stub @openai/codex-sdk to save ~200 MB ──────────────────────
       - name: Stub codex-sdk native binary
