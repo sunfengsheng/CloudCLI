@@ -21,7 +21,8 @@
       {"from": "app/node_modules", "to": "app/node_modules", "filter": ["**/*", "!.cache/**"]}
     ],
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "signAndEditExecutable": false
     },
     "portable": {
       "artifactName": "CloudCLI.exe"
