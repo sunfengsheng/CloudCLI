@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 const { spawn, execSync } = require('child_process');
 
@@ -14,6 +15,23 @@ function getAppPath() {
     return path.join(process.resourcesPath, 'app', 'app');
   }
   return path.join(__dirname, 'app');
+}
+
+// Select the better-sqlite3 binary matching the system Node.js ABI version.
+// The workflow ships binaries as better_sqlite3_abi{N}.node for each supported version.
+function prepareNativeModules(appPath) {
+  const abi = process.versions.modules;
+  const releaseDir = path.join(appPath, 'node_modules', 'better-sqlite3', 'build', 'Release');
+  const abiBinary = path.join(releaseDir, `better_sqlite3_abi${abi}.node`);
+  const defaultBinary = path.join(releaseDir, 'better_sqlite3.node');
+  try {
+    if (fs.existsSync(abiBinary)) {
+      fs.copyFileSync(abiBinary, defaultBinary);
+      console.log(`[main] Loaded better-sqlite3 for Node.js ABI ${abi}`);
+    }
+  } catch (e) {
+    console.error('[main] Native module swap failed:', e.message);
+  }
 }
 
 // Find a usable node.exe on the system
@@ -111,6 +129,7 @@ function createWindow() {
 }
 
 app.on('ready', async () => {
+  prepareNativeModules(getAppPath());
   startServer();
   try {
     await waitForServer();

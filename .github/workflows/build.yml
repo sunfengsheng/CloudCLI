@@ -58,7 +58,33 @@ jobs:
           # Mark dist-server as ESM so Node.js handles .js as ES modules
           echo '{"type":"module"}' > electron-shell/app/dist-server/package.json
 
-      # ── 6. Build the exe ───────────────────────────────────────────────
+      # ── 6. Ship better-sqlite3 for Node 18/20/22/24 ───────────────────
+      - name: Bundle better-sqlite3 multi-ABI prebuilts
+        shell: bash
+        run: |
+          BSQLITE_VER=$(node -e "console.log(require('./claudecodeui/node_modules/better-sqlite3/package.json').version)")
+          RELEASE_DIR="electron-shell/app/node_modules/better-sqlite3/build/Release"
+          CURRENT_ABI=$(node -e "console.log(process.versions.modules)")
+
+          # Save binary compiled by npm ci (current Node.js ABI)
+          cp "${RELEASE_DIR}/better_sqlite3.node" "${RELEASE_DIR}/better_sqlite3_abi${CURRENT_ABI}.node"
+          echo "Saved ABI ${CURRENT_ABI} (current Node.js $(node --version))"
+
+          # Download prebuilts for other Node.js ABI versions
+          for ABI in 108 115 127 137; do
+            [ "$ABI" = "$CURRENT_ABI" ] && continue
+            URL="https://github.com/WiseLibs/better-sqlite3/releases/download/v${BSQLITE_VER}/better-sqlite3-v${BSQLITE_VER}-node-v${ABI}-win32-x64.tar.gz"
+            echo "Downloading ABI ${ABI} from ${URL}..."
+            if curl -sL --fail "$URL" -o /tmp/bsqlite-${ABI}.tar.gz; then
+              tar -xzf /tmp/bsqlite-${ABI}.tar.gz -C /tmp "package/build/Release/better_sqlite3.node"
+              cp "/tmp/package/build/Release/better_sqlite3.node" "${RELEASE_DIR}/better_sqlite3_abi${ABI}.node"
+              echo "  ✓ ABI ${ABI} ready"
+            else
+              echo "  ⚠ ABI ${ABI} prebuilt not available, skipping"
+            fi
+          done
+
+
       - name: Install electron-shell dependencies
         working-directory: electron-shell
         run: npm install
