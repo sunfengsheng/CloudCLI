@@ -21,12 +21,10 @@
       {"from": "app/node_modules", "to": "app/node_modules", "filter": ["**/*", "!.cache/**"]}
     ],
     "win": {
-      "target": "portable",
+      "target": [{"target": "zip", "arch": "x64"}],
       "signAndEditExecutable": false
     },
-    "portable": {
-      "artifactName": "CloudCLI.exe"
-    }
+    "artifactName": "CloudCLI-${version}-win-x64.zip"
   },
   "devDependencies": {
     "electron": "^33.0.0",
