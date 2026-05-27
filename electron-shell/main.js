@@ -18,9 +18,17 @@ function getAppPath() {
 }
 
 // Select the better-sqlite3 binary matching the system Node.js ABI version.
-// The workflow ships binaries as better_sqlite3_abi{N}.node for each supported version.
-function prepareNativeModules(appPath) {
-  const abi = process.versions.modules;
+// Must use system node to get ABI — process.versions.modules here is Electron's ABI, not Node's.
+function prepareNativeModules(appPath, nodePath) {
+  if (!nodePath) return;
+  let abi;
+  try {
+    abi = execSync(`"${nodePath}" -e "process.stdout.write(process.versions.modules)"`,
+      { encoding: 'utf8', windowsHide: true }).trim();
+  } catch (e) {
+    console.error('[main] Could not detect system Node.js ABI:', e.message);
+    return;
+  }
   const releaseDir = path.join(appPath, 'node_modules', 'better-sqlite3', 'build', 'Release');
   const abiBinary = path.join(releaseDir, `better_sqlite3_abi${abi}.node`);
   const defaultBinary = path.join(releaseDir, 'better_sqlite3.node');
@@ -28,6 +36,8 @@ function prepareNativeModules(appPath) {
     if (fs.existsSync(abiBinary)) {
       fs.copyFileSync(abiBinary, defaultBinary);
       console.log(`[main] Loaded better-sqlite3 for Node.js ABI ${abi}`);
+    } else {
+      console.warn(`[main] No prebuilt for ABI ${abi}, ABI mismatch may occur`);
     }
   } catch (e) {
     console.error('[main] Native module swap failed:', e.message);
@@ -54,11 +64,10 @@ function findNodePath() {
   return null;
 }
 
-function startServer() {
+function startServer(nodePath) {
   const appPath = getAppPath();
   const serverEntry = path.join(appPath, 'dist-server', 'server', 'index.js');
 
-  const nodePath = findNodePath();
   if (!nodePath) {
     dialog.showErrorBox(
       'Node.js Not Found',
@@ -129,8 +138,9 @@ function createWindow() {
 }
 
 app.on('ready', async () => {
-  prepareNativeModules(getAppPath());
-  startServer();
+  const nodePath = findNodePath();
+  prepareNativeModules(getAppPath(), nodePath);
+  startServer(nodePath);
   try {
     await waitForServer();
     createWindow();
