@@ -74,11 +74,17 @@ jobs:
           for ABI in 108 115 127 137; do
             [ "$ABI" = "$CURRENT_ABI" ] && continue
             URL="https://github.com/WiseLibs/better-sqlite3/releases/download/v${BSQLITE_VER}/better-sqlite3-v${BSQLITE_VER}-node-v${ABI}-win32-x64.tar.gz"
-            echo "Downloading ABI ${ABI} from ${URL}..."
+            echo "Downloading ABI ${ABI}..."
             if curl -sL --fail "$URL" -o /tmp/bsqlite-${ABI}.tar.gz; then
-              tar -xzf /tmp/bsqlite-${ABI}.tar.gz -C /tmp "package/build/Release/better_sqlite3.node"
-              cp "/tmp/package/build/Release/better_sqlite3.node" "${RELEASE_DIR}/better_sqlite3_abi${ABI}.node"
-              echo "  ✓ ABI ${ABI} ready"
+              mkdir -p /tmp/bsqlite-${ABI}
+              tar -xzf /tmp/bsqlite-${ABI}.tar.gz -C /tmp/bsqlite-${ABI}
+              NODE_FILE=$(find /tmp/bsqlite-${ABI} -name "better_sqlite3.node" | head -1)
+              if [ -n "$NODE_FILE" ]; then
+                cp "$NODE_FILE" "${RELEASE_DIR}/better_sqlite3_abi${ABI}.node"
+                echo "  ✓ ABI ${ABI} ready"
+              else
+                echo "  ⚠ ABI ${ABI}: .node file not found in archive"
+              fi
             else
               echo "  ⚠ ABI ${ABI} prebuilt not available, skipping"
             fi
