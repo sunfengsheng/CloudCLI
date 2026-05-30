@@ -66,7 +66,7 @@ import geminiRoutes from './routes/gemini.js';
 import pluginsRoutes from './routes/plugins.js';
 import providerRoutes from './modules/providers/provider.routes.js';
 import { startEnabledPluginServers, stopAllPlugins, getPluginPort } from './utils/plugin-process-manager.js';
-import { initializeDatabase, projectsDb } from './modules/database/index.js';
+import { initializeDatabase, projectsDb, userDb } from './modules/database/index.js';
 import { configureWebPush } from './services/vapid-keys.js';
 import { validateApiKey, authenticateToken, authenticateWebSocket } from './middleware/auth.js';
 import { IS_PLATFORM } from './constants/config.js';
@@ -1444,6 +1444,13 @@ async function startServer() {
     try {
         // Initialize authentication database
         await initializeDatabase();
+
+        // Platform mode: seed a default user if none exists
+        if (IS_PLATFORM && !userDb.hasUsers()) {
+            const newUser = userDb.createUser('admin', 'platform-no-password');
+            userDb.completeOnboarding(Number(newUser.id));
+            console.log('[INFO] Platform mode: created default user');
+        }
 
         // Configure Web Push (VAPID keys)
         configureWebPush();
