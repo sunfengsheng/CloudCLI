@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CloudCLI-windows
-          path: electron-shell/release/CloudCLI-*-win-x64.zip
+          path: electron-shell/release/win-unpacked
           retention-days: 30
 
       # ── 8. Create GitHub Release (only for version tags) ──────────────
