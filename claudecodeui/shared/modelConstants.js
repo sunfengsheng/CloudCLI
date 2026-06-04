@@ -13,6 +13,7 @@
 export const CLAUDE_MODELS = {
   // Models in SDK format (what the actual SDK accepts)
   OPTIONS: [
+    { value: "", label: "Default (CLI configured)" },
     { value: "opus", label: "Opus" },
     { value: "sonnet", label: "Sonnet" },
     { value: "haiku", label: "Haiku" },
@@ -22,7 +23,7 @@ export const CLAUDE_MODELS = {
     { value: "opus[1m]", label: "Opus [1M]" },
   ],
 
-  DEFAULT: "opus",
+  DEFAULT: "",
 };
 
 /**

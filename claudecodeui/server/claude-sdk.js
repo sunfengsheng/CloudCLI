@@ -202,10 +202,8 @@ function mapCliOptionsToSDK(options = {}) {
 
   sdkOptions.disallowedTools = settings.disallowedTools || [];
 
-  // Map model (default to sonnet)
-  // Valid models: sonnet, opus, haiku, opusplan, sonnet[1m]
-  sdkOptions.model = options.model || CLAUDE_MODELS.DEFAULT;
-  // Model logged at query start below
+  // Model selection is intentionally skipped — the API endpoint in use
+  // rejects any --model argument. The CLI's configured default is used.
 
   // Map system prompt configuration
   sdkOptions.systemPrompt = {
