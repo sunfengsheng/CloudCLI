@@ -531,7 +531,7 @@ export function useChatComposerState({
       }
 
       const effectiveSessionId =
-        currentSessionId || selectedSession?.id || sessionStorage.getItem('cursorSessionId');
+        currentSessionId || selectedSession?.id || (provider === 'cursor' ? sessionStorage.getItem('cursorSessionId') : null);
 
       const userMessage: ChatMessage = {
         type: 'user',
