@@ -11,16 +11,8 @@
  * - API format ('claude-sonnet-4.5') - used by slash commands for display
  */
 export const CLAUDE_MODELS = {
-  // Models in SDK format (what the actual SDK accepts)
   OPTIONS: [
     { value: "", label: "Default (CLI configured)" },
-    { value: "opus", label: "Opus" },
-    { value: "sonnet", label: "Sonnet" },
-    { value: "haiku", label: "Haiku" },
-    { value: "claude-opus-4-6", label: "Opus 4.6" },
-    { value: "opusplan", label: "Opus Plan" },
-    { value: "sonnet[1m]", label: "Sonnet [1M]" },
-    { value: "opus[1m]", label: "Opus [1M]" },
   ],
 
   DEFAULT: "",
@@ -60,18 +52,10 @@ export const CURSOR_MODELS = {
  */
 export const CODEX_MODELS = {
   OPTIONS: [
-    { value: "gpt-5.5", label: "GPT-5.5" },
-    { value: "gpt-5.4", label: "GPT-5.4" },
-    { value: "gpt-5.4-mini", label: "GPT-5.4 mini" },
-    { value: "gpt-5.3-codex", label: "GPT-5.3 Codex" },
-    { value: "gpt-5.2-codex", label: "GPT-5.2 Codex" },
-    { value: "gpt-5.2", label: "GPT-5.2" },
-    { value: "gpt-5.1-codex-max", label: "GPT-5.1 Codex Max" },
-    { value: "o3", label: "O3" },
-    { value: "o4-mini", label: "O4-mini" },
+    { value: "", label: "Default (config.toml)" },
   ],
 
-  DEFAULT: "gpt-5.4",
+  DEFAULT: "",
 };
 
 /**

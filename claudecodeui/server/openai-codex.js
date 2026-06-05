@@ -213,16 +213,36 @@ export async function queryCodex(command, options = {}, ws) {
   const abortController = new AbortController();
 
   try {
-    // Initialize Codex SDK
-    codex = new Codex();
+    // Resolve the system-installed codex binary so the SDK honours the user's
+    // ~/.codex/config.toml (custom provider, bearer token, etc.).
+    // The SDK's bundled binary may differ in version and ignore that config.
+    let codexPathOverride;
+    try {
+      const { execSync } = await import('child_process');
+      const npmRoot = execSync('npm root -g', { encoding: 'utf8', windowsHide: true }).trim();
+      const candidate = `${npmRoot}/@openai/codex/node_modules/@openai/codex-win32-x64/vendor/x86_64-pc-windows-msvc/codex/codex.exe`;
+      const { existsSync } = await import('fs');
+      if (existsSync(candidate)) {
+        codexPathOverride = candidate;
+        console.log('[Codex] Using system codex:', codexPathOverride);
+      } else {
+        console.log('[Codex] System codex not found at:', candidate, '— using bundled');
+      }
+    } catch(e) {
+      console.log('[Codex] Path resolution failed:', e.message, '— using bundled');
+    }
+    codex = new Codex(codexPathOverride ? { codexPathOverride } : {});
+    console.log('[Codex] Initialized, pathOverride:', codexPathOverride || '(bundled)');
 
-    // Thread options with sandbox and approval settings
+    // Thread options — omit model when not specified so codex uses its own
+    // config (model_provider / custom base_url). Passing an unknown model
+    // alias causes codex to exit with code 1.
     const threadOptions = {
       workingDirectory,
       skipGitRepoCheck: true,
       sandboxMode,
       approvalPolicy,
-      model
+      ...(model ? { model } : {}),
     };
 
     // Start or resume thread
