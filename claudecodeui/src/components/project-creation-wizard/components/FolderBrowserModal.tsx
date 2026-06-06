@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Eye, EyeOff, FolderOpen, FolderPlus, Loader2, Plus, X } from 'lucide-react';
+import { Eye, EyeOff, FolderOpen, FolderPlus, HardDrive, Loader2, Plus, X } from 'lucide-react';
 import { Button, Input } from '../../../shared/view/ui';
-import { browseFilesystemFolders, createFolderInFilesystem } from '../data/workspaceApi';
+import { browseFilesystemFolders, createFolderInFilesystem, fetchWindowsDrives } from '../data/workspaceApi';
 import { getParentPath, joinFolderPath } from '../utils/pathUtils';
 import type { FolderSuggestion } from '../types';
 
@@ -26,6 +26,10 @@ export default function FolderBrowserModal({
   const [newFolderName, setNewFolderName] = useState('');
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditingPath, setIsEditingPath] = useState(false);
+  const [editingPathValue, setEditingPathValue] = useState('');
+  const [drives, setDrives] = useState<Array<{ name: string; path: string }>>([]);
+  const [isDrivesView, setIsDrivesView] = useState(false);
 
   const loadFolders = useCallback(async (pathToLoad: string) => {
     setLoadingFolders(true);
@@ -46,7 +50,16 @@ export default function FolderBrowserModal({
     if (!isOpen) {
       return;
     }
-    loadFolders('~');
+    fetchWindowsDrives().then((fetchedDrives) => {
+      setDrives(fetchedDrives);
+      if (fetchedDrives.length > 0) {
+        setIsDrivesView(true);
+        setCurrentPath('');
+      } else {
+        setIsDrivesView(false);
+        loadFolders('~');
+      }
+    });
   }, [isOpen, loadFolders]);
 
   const visibleFolders = useMemo(
@@ -91,6 +104,12 @@ export default function FolderBrowserModal({
   }, [currentPath, loadFolders, newFolderName]);
 
   const parentPath = getParentPath(currentPath);
+  const isAtDriveRoot = parentPath === null && drives.length > 0 && !isDrivesView;
+
+  const handleSelectDrive = (drivePath: string) => {
+    setIsDrivesView(false);
+    loadFolders(drivePath);
+  };
 
   if (!isOpen) {
     return null;
@@ -179,19 +198,49 @@ export default function FolderBrowserModal({
         )}
 
         <div className="flex-1 overflow-y-auto p-4">
-          {loadingFolders ? (
+          {isDrivesView ? (
+            <div className="space-y-1">
+              {drives.map((drive) => (
+                <div key={drive.path} className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleSelectDrive(drive.path)}
+                    className="flex flex-1 items-center gap-3 rounded-lg px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <HardDrive className="h-5 w-5 text-blue-500" />
+                    <span className="font-medium text-gray-900 dark:text-white">{drive.name}</span>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onFolderSelected(drive.path, autoAdvanceOnSelect)}
+                    className="px-3 text-xs"
+                  >
+                    Select
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : loadingFolders ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
           ) : (
             <div className="space-y-1">
-              {parentPath && (
+              {(parentPath || isAtDriveRoot) && (
                 <button
-                  onClick={() => loadFolders(parentPath)}
+                  onClick={() =>
+                    isAtDriveRoot ? setIsDrivesView(true) : loadFolders(parentPath!)
+                  }
                   className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  <FolderOpen className="h-5 w-5 text-gray-400" />
-                  <span className="font-medium text-gray-700 dark:text-gray-300">..</span>
+                  {isAtDriveRoot ? (
+                    <HardDrive className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <FolderOpen className="h-5 w-5 text-gray-400" />
+                  )}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {isAtDriveRoot ? 'All Drives' : '..'}
+                  </span>
                 </button>
               )}
 
@@ -229,20 +278,52 @@ export default function FolderBrowserModal({
         <div className="border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 bg-gray-50 px-4 py-3 dark:bg-gray-900/50">
             <span className="text-sm text-gray-600 dark:text-gray-400">Path:</span>
-            <code className="flex-1 truncate font-mono text-sm text-gray-900 dark:text-white">
-              {currentPath}
-            </code>
+            {isDrivesView ? (
+              <code className="flex-1 truncate font-mono text-sm text-gray-500 dark:text-gray-400">
+                Select a drive
+              </code>
+            ) : isEditingPath ? (
+              <Input
+                autoFocus
+                className="flex-1 font-mono text-sm"
+                value={editingPathValue}
+                onChange={(e) => setEditingPathValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setIsEditingPath(false);
+                    loadFolders(editingPathValue);
+                  }
+                  if (e.key === 'Escape') {
+                    setIsEditingPath(false);
+                  }
+                }}
+                onBlur={() => setIsEditingPath(false)}
+              />
+            ) : (
+              <code
+                className="flex-1 truncate font-mono text-sm text-gray-900 dark:text-white cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 rounded px-1"
+                title="Click to edit path"
+                onClick={() => {
+                  setEditingPathValue(currentPath);
+                  setIsEditingPath(true);
+                }}
+              >
+                {currentPath}
+              </code>
+            )}
           </div>
           <div className="flex items-center justify-end gap-2 p-4">
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => onFolderSelected(currentPath, autoAdvanceOnSelect)}
-            >
-              Use this folder
-            </Button>
+            {!isDrivesView && (
+              <Button
+                variant="outline"
+                onClick={() => onFolderSelected(currentPath, autoAdvanceOnSelect)}
+              >
+                Use this folder
+              </Button>
+            )}
           </div>
         </div>
       </div>

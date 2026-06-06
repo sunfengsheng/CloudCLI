@@ -296,6 +296,24 @@ const expandWorkspacePath = (inputPath) => {
     return inputPath;
 };
 
+// List available Windows drives (returns empty array on non-Windows)
+app.get('/api/drives', authenticateToken, async (req, res) => {
+    if (process.platform !== 'win32') {
+        return res.json({ drives: [] });
+    }
+    const drives = [];
+    for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+        const drivePath = `${letter}:\\`;
+        try {
+            await fs.promises.access(drivePath);
+            drives.push({ name: `${letter}:`, path: drivePath });
+        } catch {
+            // Drive not available
+        }
+    }
+    res.json({ drives });
+});
+
 // Browse filesystem endpoint for project suggestions - uses existing getFileTree
 app.get('/api/browse-filesystem', authenticateToken, async (req, res) => {
     try {

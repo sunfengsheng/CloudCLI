@@ -269,8 +269,11 @@ export async function validateWorkspacePath(requestedPath: string): Promise<Work
     // On Windows without explicit WORKSPACES_ROOT, skip the single-root restriction —
     // Windows has multiple drive letters (C:\, D:\, etc.) so one root can't cover all drives.
     const skipRootCheck = process.platform === 'win32' && !process.env.WORKSPACES_ROOT;
+    const resolvedWorkspaceRoot = skipRootCheck
+      ? ''
+      : normalizeProjectPath(await realpath(WORKSPACES_ROOT));
+
     if (!skipRootCheck) {
-      const resolvedWorkspaceRoot = normalizeProjectPath(await realpath(WORKSPACES_ROOT));
       if (
         !resolvedPath.startsWith(`${resolvedWorkspaceRoot}${path.sep}`)
         && resolvedPath !== resolvedWorkspaceRoot
@@ -290,7 +293,8 @@ export async function validateWorkspacePath(requestedPath: string): Promise<Work
         const resolvedSymlinkPath = path.resolve(path.dirname(absolutePath), symlinkTarget);
         const realSymlinkPath = await realpath(resolvedSymlinkPath);
         if (
-          !realSymlinkPath.startsWith(`${resolvedWorkspaceRoot}${path.sep}`)
+          !skipRootCheck
+          && !realSymlinkPath.startsWith(`${resolvedWorkspaceRoot}${path.sep}`)
           && realSymlinkPath !== resolvedWorkspaceRoot
         ) {
           return {
