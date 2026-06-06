@@ -13,7 +13,6 @@ CloudCLI 是基于 [ClaudeCodeUI](https://github.com/siteboon/claudecodeui) v1.3
 |-----|------|
 | Claude Code | Anthropic 官方 CLI |
 | OpenAI Codex | `@openai/codex` CLI |
-| Gemini CLI | Google `gemini` CLI |
 
 ---
 
@@ -30,14 +29,12 @@ CloudCLI 是基于 [ClaudeCodeUI](https://github.com/siteboon/claudecodeui) v1.3
 |-----------|---------------|
 | Claude Code | `npm install -g @anthropic-ai/claude-code`，然后 `claude login` |
 | Codex | `npm install -g @openai/codex`，配置 `~/.codex/config.toml` |
-| Gemini CLI | `npm install -g @google/gemini-cli`，然后 `gemini auth` |
 
 验证安装：
 
 ```bash
 claude --version    # Claude Code
 codex --version     # Codex
-gemini --version    # Gemini CLI
 ```
 
 ---
@@ -87,7 +84,6 @@ gemini --version    # Gemini CLI
 
 - **Claude Code**：默认，使用 Anthropic Claude
 - **Codex**：使用 OpenAI Codex（需本地安装 `@openai/codex`）
-- **Gemini**：使用 Google Gemini CLI
 
 选择后，对话将通过对应 CLI 与 AI 通信。
 
@@ -146,7 +142,6 @@ claude login
 
 - Claude Code：确认已登录 `claude /status`
 - Codex：确认 API Key 有效且余额充足
-- Gemini：确认已认证 `gemini auth`
 
 ### 选择项目路径时只能看到 C 盘
 
