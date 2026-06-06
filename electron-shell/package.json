@@ -20,9 +20,11 @@
       {"from": "app/dist-server", "to": "app/dist-server"},
       {"from": "app/node_modules", "to": "app/node_modules", "filter": ["**/*", "!.cache/**"]}
     ],
+    "icon": "build/icon.ico",
     "win": {
       "target": [{"target": "zip", "arch": "x64"}],
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "icon": "build/icon.ico"
     },
     "artifactName": "CloudCLI-${version}-win-x64.zip"
   },
