@@ -266,15 +266,20 @@ export async function validateWorkspacePath(requestedPath: string): Promise<Work
       }
     }
 
-    const resolvedWorkspaceRoot = normalizeProjectPath(await realpath(WORKSPACES_ROOT));
-    if (
-      !resolvedPath.startsWith(`${resolvedWorkspaceRoot}${path.sep}`)
-      && resolvedPath !== resolvedWorkspaceRoot
-    ) {
-      return {
-        valid: false,
-        error: `Workspace path must be within the allowed workspace root: ${WORKSPACES_ROOT}`,
-      };
+    // On Windows without explicit WORKSPACES_ROOT, skip the single-root restriction —
+    // Windows has multiple drive letters (C:\, D:\, etc.) so one root can't cover all drives.
+    const skipRootCheck = process.platform === 'win32' && !process.env.WORKSPACES_ROOT;
+    if (!skipRootCheck) {
+      const resolvedWorkspaceRoot = normalizeProjectPath(await realpath(WORKSPACES_ROOT));
+      if (
+        !resolvedPath.startsWith(`${resolvedWorkspaceRoot}${path.sep}`)
+        && resolvedPath !== resolvedWorkspaceRoot
+      ) {
+        return {
+          valid: false,
+          error: `Workspace path must be within the allowed workspace root: ${WORKSPACES_ROOT}`,
+        };
+      }
     }
 
     try {
