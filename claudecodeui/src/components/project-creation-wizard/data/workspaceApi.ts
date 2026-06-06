@@ -84,17 +84,6 @@ export const fetchWindowsDrives = async (): Promise<Array<{ name: string; path: 
   }
 };
 
-export const fetchWindowsDrives = async (): Promise<Array<{ name: string; path: string }>> => {
-  try {
-    const response = await api.get('/drives');
-    const data = await parseJson<{ drives: Array<{ name: string; path: string }> }>(response);
-    if (!response.ok) return [];
-    return data.drives || [];
-  } catch {
-    return [];
-  }
-};
-
 export const browseFilesystemFolders = async (pathToBrowse: string) => {
   const endpoint = `/browse-filesystem?path=${encodeURIComponent(pathToBrowse)}`;
   const response = await api.get(endpoint);
