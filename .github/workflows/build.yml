@@ -40,15 +40,13 @@ jobs:
 
       # ── 3. Prune devDependencies (skip — prune breaks transitive deps) ──
 
-      # ── 4. Stub @openai/codex-sdk to save ~200 MB ──────────────────────
-      - name: Stub codex-sdk native binary
+      # ── 4. Remove codex-sdk bundled native binaries ───────────────────
+      # Keep the JS code intact — runtime uses system-installed codex binary
+      # via codexPathOverride, so the bundled .node binaries are not needed.
+      - name: Remove codex-sdk native binaries
         shell: bash
         run: |
-          STUB="claudecodeui/node_modules/@openai/codex-sdk/dist/index.js"
-          if [ -f "$STUB" ]; then
-            printf 'export class Codex {\n  constructor() { throw new Error("Codex SDK not available"); }\n}\n' > "$STUB"
-            find "claudecodeui/node_modules/@openai/codex-sdk" -name "*.node" -delete 2>/dev/null || true
-          fi
+          find "claudecodeui/node_modules/@openai/codex-sdk" -name "*.node" -delete 2>/dev/null || true
 
       # ── 5. Assemble electron-shell/app/ ────────────────────────────────
       - name: Assemble app directory
