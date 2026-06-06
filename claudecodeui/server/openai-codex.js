@@ -219,14 +219,30 @@ export async function queryCodex(command, options = {}, ws) {
     let codexPathOverride;
     try {
       const { execSync } = await import('child_process');
-      const npmRoot = execSync('npm root -g', { encoding: 'utf8', windowsHide: true }).trim();
-      const candidate = `${npmRoot}/@openai/codex/node_modules/@openai/codex-win32-x64/vendor/x86_64-pc-windows-msvc/codex/codex.exe`;
       const { existsSync } = await import('fs');
-      if (existsSync(candidate)) {
-        codexPathOverride = candidate;
-        console.log('[Codex] Using system codex:', codexPathOverride);
+      const npmRoot = execSync('npm root -g', { encoding: 'utf8', windowsHide: true }).trim();
+      // npm hoists global deps to the top-level node_modules, so the platform
+      // package lives at <npmRoot>/@openai/codex-<os>-<arch>, NOT nested under
+      // @openai/codex/node_modules/.
+      const platformMap = {
+        'win32-x64':    { pkg: '@openai/codex-win32-x64',   bin: 'x86_64-pc-windows-msvc/codex/codex.exe' },
+        'darwin-arm64': { pkg: '@openai/codex-darwin-arm64', bin: 'aarch64-apple-darwin/codex/codex' },
+        'darwin-x64':   { pkg: '@openai/codex-darwin-x64',  bin: 'x86_64-apple-darwin/codex/codex' },
+        'linux-x64':    { pkg: '@openai/codex-linux-x64',   bin: 'x86_64-unknown-linux-musl/codex/codex' },
+        'linux-arm64':  { pkg: '@openai/codex-linux-arm64', bin: 'aarch64-unknown-linux-musl/codex/codex' },
+      };
+      const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
+      const entry = platformMap[`${process.platform}-${arch}`];
+      if (entry) {
+        const candidate = `${npmRoot}/${entry.pkg}/vendor/${entry.bin}`;
+        if (existsSync(candidate)) {
+          codexPathOverride = candidate;
+          console.log('[Codex] Using system codex:', codexPathOverride);
+        } else {
+          console.log('[Codex] System codex not found at:', candidate, '— using bundled');
+        }
       } else {
-        console.log('[Codex] System codex not found at:', candidate, '— using bundled');
+        console.log('[Codex] Unsupported platform:', `${process.platform}-${arch}`, '— using bundled');
       }
     } catch(e) {
       console.log('[Codex] Path resolution failed:', e.message, '— using bundled');
